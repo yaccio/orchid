@@ -5,6 +5,7 @@ Implementation of the Api for executing commands remotely
 package core
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -28,16 +29,32 @@ func (a RemoteApi) RunJob(jobId string) (Log, error) {
 		return Log{}, err
 	}
 
-	//TODO parse as Log
-	return Log{Id: result}, nil
+	var log Log
+	err = json.Unmarshal(result, &log)
+	if err != nil {
+		return Log{}, err
+	}
+
+	return log, nil
 }
 
 /*
 List all jobs stored remotely
 */
 func (a RemoteApi) ListLogs() ([]Log, error) {
-	//TODO
-	return []Log{}, nil
+	url := fmt.Sprintf("/logs/list")
+	result, err := a.doRequest("GET", url)
+	if err != nil {
+		return []Log{}, err
+	}
+
+	var logs []Log
+	err = json.Unmarshal(result, &logs)
+	if err != nil {
+		return []Log{}, err
+	}
+
+	return logs, nil
 }
 
 /*
@@ -52,17 +69,17 @@ func (a RemoteApi) GetLogOutput(logId string, writer io.Writer) error {
 Helper method for executing a HTTP request on the remote server as defined in
 the configurations
 */
-func (a RemoteApi) doRequest(method, url string) (string, error) {
+func (a RemoteApi) doRequest(method, url string) ([]byte, error) {
 	server, err := loadServer(a.path)
 	if err != nil {
-		return "", err
+		return []byte{}, err
 	}
 
 	url = fmt.Sprintf("%s:%s%s", server.Address, server.Port, url)
 
 	req, requestErr := http.NewRequest(method, url, nil)
 	if requestErr != nil {
-		return "", requestErr
+		return []byte{}, requestErr
 	}
 	if server.Secret != "" {
 		req.Header.Set("X-Orchid-Secret", server.Secret)
@@ -71,14 +88,14 @@ func (a RemoteApi) doRequest(method, url string) (string, error) {
 	client := &http.Client{}
 	response, responseErr := client.Do(req)
 	if responseErr != nil {
-		return "", responseErr
+		return []byte{}, responseErr
 	}
 	defer response.Body.Close()
 
 	body, bodyErr := ioutil.ReadAll(response.Body)
 	if bodyErr != nil {
-		return "", bodyErr
+		return []byte{}, bodyErr
 	}
 
-	return string(body), nil
+	return body, nil
 }

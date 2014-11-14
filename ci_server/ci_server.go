@@ -5,6 +5,7 @@ The CI server of the Orchid application
 package ci_server
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/go-martini/martini"
 	"github.com/mikkel-larsen/orchid/core"
@@ -18,6 +19,7 @@ This is a blocking operation
 func Start() {
 	m := martini.Classic()
 
+	m.Get("/logs/list", listLogs)
 	m.Get("/logs/:id", getLog)
 	m.Post("/runs/:id", runJob)
 
@@ -29,6 +31,7 @@ Endpoint for running the job with the given id
 */
 func runJob(w http.ResponseWriter, r *http.Request, params martini.Params) {
 	//TODO validate secret
+
 	path := "ci"
 	jobId := params["id"]
 
@@ -44,8 +47,15 @@ func runJob(w http.ResponseWriter, r *http.Request, params martini.Params) {
 		return
 	}
 
+	data, err := json.Marshal(log)
+	if err != nil {
+		w.WriteHeader(500)
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+
 	w.WriteHeader(200)
-	fmt.Fprintf(w, log.Id)
+	fmt.Fprintf(w, string(data))
 }
 
 /*
@@ -54,6 +64,7 @@ Endpoint for getting the logged output of the log with the given id
 func getLog(w http.ResponseWriter, r *http.Request, params martini.Params) {
 	//TODO validate secret
 	//TODO this must be implemented with sockets (the current implementation does not work)
+
 	path := "ci"
 	logId := params["id"]
 
@@ -61,14 +72,14 @@ func getLog(w http.ResponseWriter, r *http.Request, params martini.Params) {
 	var err error
 	api, err = core.NewLocalApi(path)
 	if err != nil {
-		w.WriteHeader(400)
+		w.WriteHeader(500)
 		fmt.Fprintf(w, err.Error())
 		return
 	}
 
 	err = api.GetLogOutput(logId, w)
 	if err != nil {
-		w.WriteHeader(400)
+		w.WriteHeader(500)
 		fmt.Fprintf(w, err.Error())
 		return
 	}
@@ -76,4 +87,34 @@ func getLog(w http.ResponseWriter, r *http.Request, params martini.Params) {
 	w.WriteHeader(200)
 }
 
-//TODO implement the list operation
+/*
+Endpoint for getting all stored logs
+*/
+func listLogs(w http.ResponseWriter, r *http.Request) {
+	//TODO validate secret
+
+	path := "ci"
+	api, err := core.NewLocalApi(path)
+	if err != nil {
+		w.WriteHeader(500)
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+
+	logs, err := api.ListLogs()
+	if err != nil {
+		w.WriteHeader(500)
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+
+	data, err := json.Marshal(logs)
+	if err != nil {
+		w.WriteHeader(500)
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+
+	w.WriteHeader(200)
+	fmt.Fprintf(w, string(data))
+}

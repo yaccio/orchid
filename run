@@ -51,11 +51,12 @@ if ${opts[--clean]} ; then clean && succeed "cleaned" ; fi
 
 DOCKER_OPTS="-it --rm --volumes-from $PROJECT_NAME""_data \
 	-v $dir:/go/src/github.com/mikkel-larsen/orchid \
+	-u $(id -u $(whoami)) \
 	$EXTRA_DOCKER_OPTS"
 
 if ! ${opts[--no-port]} ; then DOCKER_OPTS="$DOCKER_OPTS -p 80:80" ; fi
 
-docker run --name $PROJECT_NAME"_data" -v /go -d $PROJECT_NAME &>/dev/null
+docker run -u $(id -u $(whoami)) --name $PROJECT_NAME"_data" -v /go -d $PROJECT_NAME 2>/dev/null
 
 (docker run $DOCKER_OPTS $PROJECT_NAME ${@:-bash -c 'go build && echo built'} \
 	&& succeed "ok") || fail "not ok"

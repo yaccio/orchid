@@ -9,8 +9,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/mikkel-larsen/orchid/ci_server"
-	"github.com/mikkel-larsen/orchid/core"
+	"github.com/yaccio/orchid/ci_server"
+	"github.com/yaccio/orchid/core"
 	"os"
 )
 

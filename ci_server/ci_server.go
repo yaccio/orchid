@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-martini/martini"
-	"github.com/mikkel-larsen/orchid/core"
+	"github.com/yaccio/orchid/core"
 	"net/http"
 )
 

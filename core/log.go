@@ -27,6 +27,18 @@ type Log struct {
 Save the log to the logs configuration file
 */
 func (l Log) save(path string) error {
+	// Keep the file open as a write lock, ensuring that no lost updates occur
+	f, err := os.OpenFile(path+"/logs.json", os.O_RDWR|os.O_CREATE|os.O_EXCL, 0644)
+	if err == nil {
+		// New file. Write empty list to it
+		_, err = f.WriteString("[]")
+		if err != nil {
+			f.Close()
+			return err
+		}
+	}
+	defer f.Close()
+
 	logs, err := loadLogs(path)
 	if err != nil {
 		return err
@@ -112,18 +124,6 @@ func newLog(jobId string) Log {
 Load all logs stored locally
 */
 func loadLogs(path string) ([]Log, error) {
-	// Create the file if it does not exist
-	f, err := os.OpenFile(path+"/logs.json", os.O_RDWR|os.O_CREATE|os.O_EXCL, 0644)
-	if err == nil {
-		// New file. Write empty list to it
-		_, err = f.WriteString("[]")
-		if err != nil {
-			f.Close()
-			return []Log{}, err
-		}
-	}
-	f.Close()
-
 	// Load the file
 	logs := &[]Log{}
 	data, err := ioutil.ReadFile(path + "/logs.json")

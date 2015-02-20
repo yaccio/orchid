@@ -38,36 +38,34 @@ func main() {
 		}
 
 		jobId := args[1]
-
-		var log Log
-		log, err := actions.RunJob(jobId)
-		fmt.Println(log.Id)
-
-		// Tail the log, ensuring the program does not terminate
-		err = actions.GetLogOutput(log.Id)
-		if err != nil {
-			fmt.Println("ERROR: " + err.Error())
-		}
+		actions.RunJob(jobId)
 	}
 
-	// List jobs
+	// List
 	if args[0] == "list" {
-		if len(args) != 1 {
+		if len(args) != 2 {
 			printUsage()
 			return
 		}
 
-		logs, err := actions.ListLogs()
-		if err != nil {
-			fmt.Println("ERROR: " + err.Error())
-		}
-		fmt.Printf("%-20s\t%-20s\t%-20s\t%-32s\t%-32s\n", "Id", "Job", "Status", "Start", "End")
-		for _, log := range logs {
-			fmt.Printf("%-20s\t%-20s\t%-20s\t%-32s\t%-32s\n", log.Id, log.JobId, log.Status, log.StartTime, log.EndTime)
+		if args[1] == "jobs" {
+			// List jobs
+			actions.ListJobs()
+		} else if args[1] == "machines" {
+			// List machines
+			actions.ListMachines()
+		} else if args[1] == "scripts" {
+			// List scripts
+			actions.ListScripts()
+		} else if args[1] == "logs" {
+			// List logs
+			actions.ListLogs()
+		} else {
+			printUsage()
 		}
 	}
 
-	// Get log
+	// Get log output
 	if args[0] == "logs" {
 		if len(args) != 2 {
 			printUsage()
@@ -75,11 +73,7 @@ func main() {
 		}
 
 		logId := args[1]
-
-		err := actions.GetLogOutput(logId)
-		if err != nil {
-			fmt.Println("ERROR: " + err.Error())
-		}
+		actions.GetLogOutput(logId)
 	}
 }
 
@@ -88,7 +82,10 @@ Prints a help message, explaining how to use the application
 */
 func printUsage() {
 	fmt.Println("Usage:")
-	fmt.Println("- Run job:\torchid run <job id>")
-	fmt.Println("- List logs:\torchid logs")
-	fmt.Println("- Get log:\torchid logs <log id>")
+	fmt.Println("- list jobs\t// List all configured jobs")
+	fmt.Println("- list machines\t// List all configured machines")
+	fmt.Println("- list scripts\t// List all configured scripts")
+	fmt.Println("- list logs\t// List all stored logs")
+	fmt.Println("- run <job id>\t// Run the job with the given id")
+	fmt.Println("- logs <log id>\t// Tail the log with the given id")
 }

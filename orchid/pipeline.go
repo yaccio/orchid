@@ -40,13 +40,18 @@ func (p Pipeline) Run(path string) {
 	}
 
 	// Run the commands
-	for _, cmd := range p.Cmds {
+	for i, cmd := range p.Cmds {
 		err = cmd.Start()
 		if err != nil {
+			fmt.Fprintf(p.File, "ERROR: Failed to run script %d\n", i)
+			p.Log.error(path, p.File)
 			return
 		}
 		err = cmd.Wait()
 		if err != nil {
+			fmt.Println("Failed to wait for cmd")
+			fmt.Fprintf(p.File, "ERROR: Failed to wait for script %d to finish\n", i)
+			p.Log.error(path, p.File)
 			return
 		}
 	}

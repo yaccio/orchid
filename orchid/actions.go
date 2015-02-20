@@ -25,6 +25,9 @@ func (a *Actions) ListJobs() {
 
 	for _, job := range setup.Jobs {
 		fmt.Println(job.Id)
+		for _, ex := range job.Pipeline {
+			fmt.Printf("\t%s -> %s\n", ex.Machine, ex.Script)
+		}
 	}
 }
 
@@ -39,6 +42,7 @@ func (a *Actions) ListMachines() {
 
 	for _, machine := range setup.Machines {
 		fmt.Println(machine.Id)
+		fmt.Printf("\t%s@%s:%s (%s)\n", machine.User, machine.Address, machine.Port, machine.PrivateKey)
 	}
 }
 

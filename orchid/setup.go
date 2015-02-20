@@ -3,7 +3,7 @@ Definition of and methods for loading and validating the configuration files
 concerned with jobs, machines, and scripts
 */
 
-package core
+package main
 
 import (
 	"encoding/json"

@@ -3,7 +3,7 @@ A pipeline wraps the executable part of a job including command execution and
 logging
 */
 
-package core
+package main
 
 import (
 	"errors"

@@ -3,7 +3,7 @@ Definition of and methods for loading and validating the remote CI server
 configuration files
 */
 
-package core
+package main
 
 import (
 	"encoding/json"

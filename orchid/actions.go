@@ -2,25 +2,21 @@
 Implementation of the Api for executing commands locally
 */
 
-package core
+package main
 
 import (
 	"fmt"
 	"github.com/ActiveState/tail"
-	"io"
 )
 
-/*
-The local API type
-*/
-type LocalApi struct {
+type Actions struct {
 	path string
 }
 
 /*
 Execute the job with the given id locally
 */
-func (a LocalApi) RunJob(jobId string) (Log, error) {
+func (a *Actions) RunJob(jobId string) (Log, error) {
 	log := newLog(jobId)
 
 	pipeline, err := buildPipeline(a.path, jobId, log)
@@ -38,14 +34,14 @@ func (a LocalApi) RunJob(jobId string) (Log, error) {
 /*
 List all existing logs stored locally
 */
-func (a LocalApi) ListLogs() ([]Log, error) {
+func (a *Actions) ListLogs() ([]Log, error) {
 	return loadLogs(a.path)
 }
 
 /*
 Get the output stored locally in the log with the given id
 */
-func (a LocalApi) GetLogOutput(logId string, writer io.Writer) error {
+func (a *Actions) GetLogOutput(logId string) error {
 	t, err := tail.TailFile(a.path+"/logs/"+logId, tail.Config{Follow: true})
 	if err != nil {
 		return err
@@ -55,7 +51,7 @@ func (a LocalApi) GetLogOutput(logId string, writer io.Writer) error {
 		if line.Text == "-----Finished-----" || line.Text == "-----Error-----" {
 			break
 		}
-		fmt.Fprintln(writer, line.Text)
+		fmt.Println(line.Text)
 	}
 
 	return nil

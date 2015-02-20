@@ -2,7 +2,7 @@
 Definition of and methods for logs including log persistence
 */
 
-package core
+package main
 
 import (
 	"encoding/json"

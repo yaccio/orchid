@@ -9,8 +9,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/yaccio/orchid/ci_server"
-	"github.com/yaccio/orchid/core"
 	"os"
 )
 
@@ -25,35 +23,12 @@ func main() {
 	}
 
 	// Handle flags and arguments
-	var remote bool
-	flag.BoolVar(&remote, "r", false, "Run the command on the remote CI server")
 	var path string
 	flag.StringVar(&path, "-p", "ci", "Give a specified path to the config directory")
 	flag.Parse()
 	var args = flag.Args()
 
-	// Run CI server (this blocks)
-	if args[0] == "ci" {
-		if len(args) != 1 {
-			printUsage()
-			return
-		}
-		ci_server.Start()
-		return
-
-	}
-
-	// Get local or remote api depending on flags
-	var api core.Api
-	var err error
-	if remote {
-		api, err = core.NewRemoteApi(path)
-	} else {
-		api, err = core.NewLocalApi(path)
-	}
-	if err != nil {
-		fmt.Println("ERROR: " + err.Error())
-	}
+	actions := Actions{path}
 
 	// Run job
 	if args[0] == "run" {
@@ -64,12 +39,12 @@ func main() {
 
 		jobId := args[1]
 
-		var log core.Log
-		log, err = api.RunJob(jobId)
+		var log Log
+		log, err := actions.RunJob(jobId)
 		fmt.Println(log.Id)
 
 		// Tail the log, ensuring the program does not terminate
-		err = api.GetLogOutput(log.Id, os.Stdout)
+		err = actions.GetLogOutput(log.Id)
 		if err != nil {
 			fmt.Println("ERROR: " + err.Error())
 		}
@@ -82,7 +57,7 @@ func main() {
 			return
 		}
 
-		logs, err := api.ListLogs()
+		logs, err := actions.ListLogs()
 		if err != nil {
 			fmt.Println("ERROR: " + err.Error())
 		}
@@ -101,7 +76,7 @@ func main() {
 
 		logId := args[1]
 
-		err = api.GetLogOutput(logId, os.Stdout)
+		err := actions.GetLogOutput(logId)
 		if err != nil {
 			fmt.Println("ERROR: " + err.Error())
 		}
@@ -113,9 +88,7 @@ Prints a help message, explaining how to use the application
 */
 func printUsage() {
 	fmt.Println("Usage:")
-	fmt.Println("- Run CI server:\torchid ci")
-	fmt.Println("- Run job:\torchid [-r] run <job id>")
-	fmt.Println("- List logs:\torchid [-r] logs")
-	fmt.Println("- Get log:\torchid [-r] logs <log id>")
-	fmt.Println("The -r flag runs the command on the remote CI server")
+	fmt.Println("- Run job:\torchid run <job id>")
+	fmt.Println("- List logs:\torchid logs")
+	fmt.Println("- Get log:\torchid logs <log id>")
 }

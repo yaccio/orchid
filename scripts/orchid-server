@@ -1,0 +1,2 @@
+#!/bin/sh
+docker run -it --rm -v `pwd`:/project -p 3000:3000 yaccio/orchid-server

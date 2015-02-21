@@ -24,7 +24,7 @@ func main() {
 
 	// Handle flags and arguments
 	var path string
-	flag.StringVar(&path, "-p", "ci", "Give a specified path to the config directory")
+	flag.StringVar(&path, "-p", "orchid", "Specify the path to the config directory")
 	flag.Parse()
 	var args = flag.Args()
 

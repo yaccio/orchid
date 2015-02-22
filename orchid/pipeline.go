@@ -114,7 +114,6 @@ func buildExecutable(path string, executable Executable, machines []Machine, log
 	script := path + "/scripts/" + executable.Script
 	if executable.Machine == "local" {
 		cmd = exec.Command("/bin/bash", script)
-		cmd.Stdout = file
 	} else {
 		var machine Machine
 		for _, m := range machines {
@@ -125,7 +124,7 @@ func buildExecutable(path string, executable Executable, machines []Machine, log
 		}
 
 		sshCommand := fmt.Sprintf(
-			"ssh %s@%s -p %s -i %s 'bash -s' < %s",
+			"ssh -o 'StrictHostKeyChecking no' %s@%s -p %s -i %s 'bash -s' < %s",
 			machine.User,
 			machine.Address,
 			machine.Port,
@@ -134,6 +133,9 @@ func buildExecutable(path string, executable Executable, machines []Machine, log
 		)
 		cmd = exec.Command("/bin/bash", "-c", sshCommand)
 	}
+
+	cmd.Stdout = file
+	cmd.Stderr = file
 
 	return cmd, nil
 }

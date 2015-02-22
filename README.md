@@ -1,8 +1,8 @@
 # Orchid
 Command line application and CI server for execute a defined set of jobs
 locally and remotely through the same interface. The project focuses and simple
-deployment and easy replication of the CI server / scripts needed for
-deployment. The application is written entirely in Go.
+deployment and easy replication of everything  needed for deployment accross
+computers. The application is written entirely in Go.
 
 **Note: The project is under development. It is not finished, and the features described below can not be expected to work.**
 
@@ -10,15 +10,25 @@ deployment. The application is written entirely in Go.
 # Usage
 The application has the following interface:
 
-- Run CI server: `orchid ci`
-- Run job: `orchid [-r] run <job id>`
-- List logs: `orchid [-r] logs`
-- Get log: `orchid [-r] logs <log id>`
+```
+- list jobs     // List all configured jobs
+- list machines // List all configured machines
+- list scripts  // List all configured scripts
+- list logs     // List all stored logs
+- run <job id>  // Run the job with the given id
+- logs <log id> // Tail the log with the given id
+```
 
-The -r flag runs the command on the remote CI server rather than locally.
+It looks for a directory named `orchid` in which the configuration files reside
+as described further below.
 
 
-# Setup
+# Installation
+Orchid requires docker to run. Clone this repository and add the `scripts`
+directory to your path.
+
+
+# Configuration
 Everything in Orchid is defined in flat files, making an entire setup easily
 versioned using Git and easily configured using any text editor.
 

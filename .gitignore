@@ -1,6 +1,8 @@
 ci
 gin-bin
 orchid/orchid
+orchid-server/orchid-server
+orchid-client/orchid-client
 orchid/ci
 
 

@@ -5,8 +5,11 @@ Implementation of the Api for executing commands locally
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/ActiveState/tail"
+	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -142,38 +145,39 @@ func (a *Actions) GetLogOutput(logId string) {
 /*
 Interactive ssh
 */
-func (a *Actions) SSH(machineName string) (*exec.Cmd, error) {
-	var cmd *exec.Cmd
-
+func (a *Actions) SSH(machineId string) error {
 	setup, err := loadSetup(a.path)
 	if err != nil {
 		fmt.Println("ERROR: " + err.Error())
 	}
 
-	if executable.Machine == "local" {
-		cmd = exec.Command("/bin/bash", script)
-	} else {
-		var machine Machine
-		for _, m := range machines {
-			if m.Id == executable.Machine {
-				machine = m
-				break
-			}
+	var machine Machine
+	found := false
+	for _, m := range setup.Machines {
+		if m.Id == machineId {
+			machine = m
+			found = true
+			break
 		}
-
-		sshCommand := fmt.Sprintf(
-			"ssh -o 'StrictHostKeyChecking no' %s@%s -p %s -i %s 'bash -s' < %s",
-			machine.User,
-			machine.Address,
-			machine.Port,
-			path+"/keys/"+machine.PrivateKey,
-			script,
-		)
-		cmd = exec.Command("/bin/bash", "-c", sshCommand)
 	}
 
-	cmd.Stdout = file
-	cmd.Stderr = file
+	// Check if no machine matched
+	if !found {
+		return errors.New("No machine with the given id was found")
+	}
 
-	return cmd, nil
+	sshCommand := fmt.Sprintf(
+		"ssh -o 'StrictHostKeyChecking no' -o 'BatchMode yes' %s@%s -p %s -i %s",
+		machine.User,
+		machine.Address,
+		machine.Port,
+		a.path+"/keys/"+machine.PrivateKey,
+	)
+	cmd := exec.Command("/bin/bash", "-c", sshCommand)
+
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
 }

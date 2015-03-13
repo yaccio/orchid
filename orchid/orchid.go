@@ -75,6 +75,17 @@ func main() {
 		logId := args[1]
 		actions.GetLogOutput(logId)
 	}
+
+	// SSH into a given machine
+	if args[0] == "ssh" {
+		if len(args) != 2 {
+			printUsage()
+			return
+		}
+
+		machineId := args[1]
+		actions.SSH(machineId)
+	}
 }
 
 /*
@@ -88,4 +99,5 @@ func printUsage() {
 	fmt.Println("- list logs\t// List all stored logs")
 	fmt.Println("- run <job id>\t// Run the job with the given id")
 	fmt.Println("- logs <log id>\t// Tail the log with the given id")
+	fmt.Println("- ssh <machine id>\t// SSH into the machine with the given id")
 }

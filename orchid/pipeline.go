@@ -124,7 +124,7 @@ func buildExecutable(path string, executable Executable, machines []Machine, log
 		}
 
 		sshCommand := fmt.Sprintf(
-			"ssh -o 'StrictHostKeyChecking no' %s@%s -p %s -i %s 'bash -s' < %s",
+			"ssh -o 'StrictHostKeyChecking no' -o 'BatchMode yes' %s@%s -p %s -i %s 'bash -s' < %s",
 			machine.User,
 			machine.Address,
 			machine.Port,

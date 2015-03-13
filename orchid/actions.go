@@ -138,3 +138,42 @@ func (a *Actions) GetLogOutput(logId string) {
 		fmt.Println(line.Text)
 	}
 }
+
+/*
+Interactive ssh
+*/
+func (a *Actions) SSH(machineName string) (*exec.Cmd, error) {
+	var cmd *exec.Cmd
+
+	setup, err := loadSetup(a.path)
+	if err != nil {
+		fmt.Println("ERROR: " + err.Error())
+	}
+
+	if executable.Machine == "local" {
+		cmd = exec.Command("/bin/bash", script)
+	} else {
+		var machine Machine
+		for _, m := range machines {
+			if m.Id == executable.Machine {
+				machine = m
+				break
+			}
+		}
+
+		sshCommand := fmt.Sprintf(
+			"ssh -o 'StrictHostKeyChecking no' %s@%s -p %s -i %s 'bash -s' < %s",
+			machine.User,
+			machine.Address,
+			machine.Port,
+			path+"/keys/"+machine.PrivateKey,
+			script,
+		)
+		cmd = exec.Command("/bin/bash", "-c", sshCommand)
+	}
+
+	cmd.Stdout = file
+	cmd.Stderr = file
+
+	return cmd, nil
+}

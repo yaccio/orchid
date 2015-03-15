@@ -29,7 +29,7 @@ func (a *Actions) ListJobs() {
 	for _, job := range setup.Jobs {
 		fmt.Println(job.Id)
 		for _, ex := range job.Pipeline {
-			fmt.Printf("\t%s -> %s\n", ex.Machine, ex.Script)
+			fmt.Printf("\t%s -> %s %v\n", ex.Machine, ex.Script, ex.Args)
 		}
 	}
 }

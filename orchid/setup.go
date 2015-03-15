@@ -47,6 +47,7 @@ Type defining an executable (part of a job)
 type Executable struct {
 	Machine string
 	Script  string
+	Args    []string
 }
 
 /*

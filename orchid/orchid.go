@@ -30,6 +30,9 @@ func main() {
 
 	actions := Actions{path}
 
+	// Create logs dir if it does not exist
+	os.Mkdir("orchid/logs", 0744)
+
 	// Run job
 	if args[0] == "run" {
 		if len(args) != 2 {

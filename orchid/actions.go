@@ -35,6 +35,24 @@ func (a *Actions) ListJobs() {
 }
 
 /*
+List all actions
+*/
+func (a *Actions) ListActions() {
+	setup, err := loadSetup(a.path)
+	if err != nil {
+		fmt.Println("ERROR: " + err.Error())
+	}
+
+	for _, action := range setup.Actions {
+		fmt.Println(action.Id)
+		fmt.Printf("\t%s -> %s\n",
+			action.Machine,
+			action.Command,
+		)
+	}
+}
+
+/*
 List all machines
 */
 func (a *Actions) ListMachines() {
@@ -79,7 +97,7 @@ func (a *Actions) ListLogs() {
 }
 
 /*
-Execute the job with the given id locally
+Run the job with the given id
 */
 func (a *Actions) RunJob(jobId string) {
 	log := newLog(jobId)
@@ -97,6 +115,72 @@ func (a *Actions) RunJob(jobId string) {
 
 	// Tail the log, ensuring the program does not terminate
 	a.GetLogOutput(log.Id)
+}
+
+/*
+Execute the action with the given id
+*/
+func (a *Actions) ExecuteAction(actionId string) error {
+	setup, err := loadSetup(a.path)
+	if err != nil {
+		fmt.Println("ERROR: " + err.Error())
+	}
+
+	// Find the action
+	var action Action
+	found := false
+	for _, a := range setup.Actions {
+		if a.Id == actionId {
+			action = a
+			found = true
+			break
+		}
+	}
+
+	// Check if no action matched
+	if !found {
+		return errors.New("No action with the given id was found")
+	}
+
+	var cmd *exec.Cmd
+
+	if action.Machine == "local" {
+		// If the script is to be executed locally, do so
+		cmd = exec.Command(action.Command)
+	} else {
+		// If not to be executed locally, find the machine
+		var machine Machine
+		found = false
+		for _, m := range setup.Machines {
+			if m.Id == action.Machine {
+				machine = m
+				found = true
+				break
+			}
+		}
+
+		// Check if no machine matched
+		if !found {
+			return errors.New("No machine with the given id was found")
+		}
+
+		// Do the execution
+		sshCommand := fmt.Sprintf(
+			"ssh -tt -o 'StrictHostKeyChecking no' -o 'BatchMode yes' %s@%s -p %s -i %s '%s'",
+			machine.User,
+			machine.Address,
+			machine.Port,
+			a.path+"/keys/"+machine.PrivateKey,
+			action.Command,
+		)
+		cmd = exec.Command("/bin/bash", "-c", sshCommand)
+	}
+
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
 }
 
 /*

@@ -44,6 +44,17 @@ func main() {
 		actions.RunJob(jobId)
 	}
 
+	// Execute action
+	if args[0] == "exec" {
+		if len(args) != 2 {
+			printUsage()
+			return
+		}
+
+		actionId := args[1]
+		actions.ExecuteAction(actionId)
+	}
+
 	// List
 	if args[0] == "list" {
 		if len(args) != 2 {
@@ -54,6 +65,9 @@ func main() {
 		if args[1] == "jobs" {
 			// List jobs
 			actions.ListJobs()
+		} else if args[1] == "actions" {
+			// List actions
+			actions.ListActions()
 		} else if args[1] == "machines" {
 			// List machines
 			actions.ListMachines()
@@ -101,6 +115,7 @@ func printUsage() {
 	fmt.Println("- list scripts\t// List all configured scripts")
 	fmt.Println("- list logs\t// List all stored logs")
 	fmt.Println("- run <job id>\t// Run the job with the given id")
+	fmt.Println("- exec <action id>\t// Execute the action with the given id")
 	fmt.Println("- logs <log id>\t// Tail the log with the given id")
 	fmt.Println("- ssh <machine id>\t// SSH into the machine with the given id")
 }

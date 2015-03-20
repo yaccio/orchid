@@ -19,6 +19,7 @@ Type defining the complete setup of jobs, machines, and scripts
 type Setup struct {
 	Machines []Machine
 	Jobs     []Job
+	Actions  []Action
 	Scripts  []string
 }
 
@@ -51,6 +52,15 @@ type Executable struct {
 }
 
 /*
+Type defining an action
+*/
+type Action struct {
+	Id      string
+	Machine string
+	Command string
+}
+
+/*
 Load the configuration files concerned with the setup
 */
 func loadSetup(path string) (Setup, error) {
@@ -62,6 +72,11 @@ func loadSetup(path string) (Setup, error) {
 	jobs, jobErr := loadJobs(path)
 	if jobErr != nil {
 		return Setup{}, jobErr
+	}
+
+	actions, actionErr := loadActions(path)
+	if actionErr != nil {
+		return Setup{}, actionErr
 	}
 
 	scripts, scriptErr := loadDir(path + "/scripts")
@@ -78,14 +93,21 @@ func loadSetup(path string) (Setup, error) {
 	if machineValidationErr != nil {
 		return Setup{}, machineValidationErr
 	}
+
 	jobValidationErr := validateJobs(jobs, machines, scripts, path)
 	if jobValidationErr != nil {
 		return Setup{}, jobValidationErr
 	}
 
+	actionValidationErr := validateActions(actions, machines)
+	if actionValidationErr != nil {
+		return Setup{}, actionValidationErr
+	}
+
 	setup := Setup{
 		Machines: machines,
 		Jobs:     jobs,
+		Actions:  actions,
 		Scripts:  scripts,
 	}
 	return setup, nil
@@ -125,6 +147,24 @@ func loadJobs(path string) ([]Job, error) {
 	}
 
 	return *jobs, nil
+}
+
+/*
+Load the configuration files concerned with actions
+*/
+func loadActions(path string) ([]Action, error) {
+	actions := &[]Action{}
+	data, err := ioutil.ReadFile(path + "/actions.json")
+	if err != nil {
+		return []Action{}, err
+	}
+
+	err = json.Unmarshal(data, &actions)
+	if err != nil {
+		return []Action{}, err
+	}
+
+	return *actions, nil
 }
 
 /*
@@ -221,6 +261,30 @@ func validateJobs(jobs []Job, machines []Machine, scripts []string, path string)
 			if !scriptFound {
 				return errors.New("Job config invalid: Job '" + job.Id + "' contains a reference to one or more unknown scripts")
 			}
+		}
+	}
+
+	return nil
+}
+
+/*
+Validate the action configuration
+*/
+func validateActions(actions []Action, machines []Machine) error {
+	for _, action := range actions {
+		if action.Id == "" {
+			return errors.New("Action config invalid: Each action must have a non-empty id")
+		}
+
+		machineFound := false
+		for _, machine := range machines {
+			if action.Machine == machine.Id || action.Machine == "local" {
+				machineFound = true
+				break
+			}
+		}
+		if !machineFound {
+			return errors.New("Action config invalid: Action '" + action.Id + "' contains a reference to one or more unknown machines")
 		}
 	}
 

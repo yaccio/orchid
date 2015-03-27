@@ -103,6 +103,18 @@ func main() {
 		machineId := args[1]
 		actions.SSH(machineId)
 	}
+
+	// Copy files/directories from one machine to another
+	if args[0] == "scp" {
+		if len(args) != 3 {
+			printUsage()
+			return
+		}
+
+		from := args[1]
+		to := args[2]
+		actions.SCP(from, to)
+	}
 }
 
 /*
@@ -118,4 +130,5 @@ func printUsage() {
 	fmt.Println("- exec <action id>\t// Execute the action with the given id")
 	fmt.Println("- logs <log id>\t// Tail the log with the given id")
 	fmt.Println("- ssh <machine id>\t// SSH into the machine with the given id")
+	fmt.Println("- scp <machine id>:<path> <machine id>:<path>\t// Copy files/directories from one machine to another. Only one of the machines can be specified. The other must be a path to a local file / directory without ':'")
 }

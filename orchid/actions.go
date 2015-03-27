@@ -265,3 +265,79 @@ func (a *Actions) SSH(machineId string) error {
 
 	return cmd.Run()
 }
+
+/*
+Copy files/directories from one machine to another
+*/
+func (a *Actions) SCP(from, to string) error {
+	setup, err := loadSetup(a.path)
+	if err != nil {
+		fmt.Println("ERROR: " + err.Error())
+	}
+
+	// Figure out which is local and which is remote
+	fromParts := strings.Split(from, ":")
+	toParts := strings.Split(to, ":")
+
+	var machineId string
+	var localToRemote bool
+
+	if len(fromParts) == 1 && len(toParts) == 2 { // Local to remote
+		localToRemote = true
+		machineId = toParts[0]
+	} else if len(fromParts) == 2 && len(toParts) == 1 { // Remote to local
+		localToRemote = false
+		machineId = fromParts[0]
+	} else { // Invalid
+		return errors.New("Invalid arguments to scp")
+	}
+
+	var machine Machine
+	found := false
+	for _, m := range setup.Machines {
+		if m.Id == machineId {
+			machine = m
+			found = true
+			break
+		}
+	}
+
+	// Check if no machine matched
+	if !found {
+		return errors.New("No machine with the given id was found")
+	}
+
+	// Build the from / to strings
+	var fromString string
+	var toString string
+
+	remoteString := fmt.Sprintf(
+		"%s@%s:",
+		machine.User,
+		machine.Address,
+	)
+
+	if localToRemote {
+		fromString = from
+		toString = remoteString + toParts[1]
+	} else {
+		fromString = remoteString + fromParts[1]
+		toString = to
+	}
+
+	// Build and execute the command
+	scpCommand := fmt.Sprintf(
+		"scp -o 'StrictHostKeyChecking no' -o 'BatchMode yes' -i %s -P %s -r %s %s",
+		a.path+"/keys/"+machine.PrivateKey,
+		machine.Port,
+		fromString,
+		toString,
+	)
+	cmd := exec.Command("/bin/bash", "-c", scpCommand)
+
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
+}

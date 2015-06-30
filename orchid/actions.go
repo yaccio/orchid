@@ -251,7 +251,7 @@ func (a *Actions) SSH(machineId string) error {
 	}
 
 	sshCommand := fmt.Sprintf(
-		"ssh -o 'StrictHostKeyChecking no' -o 'BatchMode yes' %s@%s -p %s -i %s",
+		"ssh -t -o 'StrictHostKeyChecking no' -o 'BatchMode yes' %s@%s -p %s -i %s",
 		machine.User,
 		machine.Address,
 		machine.Port,

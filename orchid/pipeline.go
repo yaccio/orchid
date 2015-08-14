@@ -113,8 +113,10 @@ configuration
 func buildExecutable(path string, executable Executable, machines []Machine, log Log, file *os.File) (*exec.Cmd, error) {
 	var cmd *exec.Cmd
 	script := path + "/scripts/" + executable.Script
+	scriptWithArgs := append([]string{script}, executable.Args...)
+	//script, executable.Args...
 	if executable.Machine == "local" {
-		cmd = exec.Command("/bin/bash", script)
+		cmd = exec.Command("/bin/bash", scriptWithArgs...)
 	} else {
 		var machine Machine
 		for _, m := range machines {

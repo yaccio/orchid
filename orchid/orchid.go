@@ -10,6 +10,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+        "path/filepath"
+        "log"
 )
 
 /*
@@ -27,6 +29,12 @@ func main() {
 	flag.StringVar(&path, "-p", "orchid", "Specify the path to the config directory")
 	flag.Parse()
 	var args = flag.Args()
+
+        currentdir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+        if err != nil {
+                log.Fatal("Can't determine full path!")
+        }
+        path = currentdir + "/" + path
 
 	actions := Actions{path}
 
@@ -115,6 +123,31 @@ func main() {
 		to := args[2]
 		actions.SCP(from, to)
 	}
+
+	// Mount a remote directory locally
+	if args[0] == "mount" {
+		if len(args) != 4 {
+			printUsage()
+			return
+		}
+
+                err := actions.Mount(args[1],args[2],args[3])
+                if err != nil {
+                        fmt.Printf("Ouch, got error %#v, is the directory already mounted?",err)
+                }
+	}
+	// Unmount a remote directory locally
+	if args[0] == "unmount" {
+		if len(args) != 2 {
+			printUsage()
+			return
+		}
+
+		err := actions.Unmount(args[1])
+                if err != nil {
+                        fmt.Printf("Ouch, got error %#v, is the directory mounted?",err)
+                }
+	}
 }
 
 /*
@@ -131,4 +164,6 @@ func printUsage() {
 	fmt.Println("- logs <log id>\t// Tail the log with the given id")
 	fmt.Println("- ssh <machine id>\t// SSH into the machine with the given id")
 	fmt.Println("- scp <machine id>:<path> <machine id>:<path>\t// Copy files/directories from one machine to another. Only one of the machines can be specified. The other must be a path to a local file / directory without ':'")
+        fmt.Println("- mount <machine id> <remote path> <local path>\t// Mount a remote directory (to which you have read access) locally")
+        fmt.Println("- unmount <local path>\t// Unmount a previously Mount'ed directory")
 }

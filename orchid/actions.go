@@ -266,6 +266,7 @@ func (a *Actions) SSH(machineId string) error {
 	return cmd.Run()
 }
 
+
 /*
 Copy files/directories from one machine to another
 */
@@ -334,6 +335,60 @@ func (a *Actions) SCP(from, to string) error {
 		toString,
 	)
 	cmd := exec.Command("/bin/bash", "-c", scpCommand)
+
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
+}
+
+/*
+Mount SSHfs
+*/
+func (a *Actions) Mount(machineId string,remoteMountPoint string,localMountPoint string) error {
+	setup, err := loadSetup(a.path)
+	if err != nil {
+		fmt.Println("ERROR: " + err.Error())
+	}
+
+	var machine Machine
+	found := false
+	for _, m := range setup.Machines {
+		if m.Id == machineId {
+			machine = m
+			found = true
+			break
+		}
+	}
+
+	// Check if no machine matched
+	if !found {
+		return errors.New("No machine with the given id was found")
+	}
+
+        commandString := fmt.Sprintf(
+                "sshfs %s@%s:%s %s -p %s -o IdentityFile=%s -o sshfs_sync",
+		machine.User,
+		machine.Address,
+                remoteMountPoint,
+                localMountPoint,
+		machine.Port,
+		a.path+"/keys/"+machine.PrivateKey,
+	)
+	cmd := exec.Command("/bin/bash", "-c", commandString)
+
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
+}
+
+func (a *Actions) Unmount(localpath string) error{
+        commandString := fmt.Sprintf("fusermount -u %s", localpath)
+
+	cmd := exec.Command("/bin/bash", "-c", commandString)
 
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

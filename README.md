@@ -1,6 +1,6 @@
 # Orchid
 Command line application and CI server for execute a defined set of jobs
-locally and remotely through the same interface. The project focuses and simple
+locally and remotely through the same interface. The project focuses on simple
 deployment and easy replication of everything  needed for deployment accross
 computers. The application is written entirely in Go.
 

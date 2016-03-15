@@ -32,7 +32,7 @@ directory to your path.
 Everything in Orchid is defined in flat files, making an entire setup easily
 versioned using Git and easily configured using any text editor.
 
-Orchid project a very simple to setup and use. A setup consists of definition
+Orchid project is very simple to setup and use. A setup consists of definition
 of the following entities described in detail below:
 
 - Machines

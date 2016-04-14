@@ -7,7 +7,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/ActiveState/tail"
+	"github.com/hpcloud/tail"
 	"os"
 	"os/exec"
 	"strings"
